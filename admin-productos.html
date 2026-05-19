@@ -2,324 +2,317 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MoonX7 Store | Gestión de Productos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MoonX7 | Panel de Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
     <script src="js/supabase.js"></script>
     <style>
-        * { font-family: 'Inter', sans-serif; }
-        body { background: #0a0a0a; }
-        .glass-panel {
-            background: rgba(20, 20, 25, 0.9);
-            backdrop-filter: blur(10px);
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0a0a; overflow-x: hidden; }
+        
+        /* Sidebar para móvil */
+        .sidebar {
+            position: fixed;
+            left: -280px;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: #0a0a0a;
+            border-right: 1px solid #1f1f2a;
+            transition: left 0.3s ease;
+            z-index: 100;
+            padding: 24px;
+        }
+        .sidebar.open { left: 0; }
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 99;
+            display: none;
+        }
+        .overlay.active { display: block; }
+        
+        /* Desktop sidebar */
+        @media (min-width: 768px) {
+            .sidebar { left: 0; width: 260px; }
+            .menu-toggle { display: none; }
+            .overlay { display: none !important; }
+            main { margin-left: 260px; }
+        }
+        
+        /* Cards y estilos */
+        .stat-card {
+            background: linear-gradient(135deg, #0f0f1a, #0a0a0f);
             border: 1px solid rgba(255, 87, 26, 0.15);
             border-radius: 20px;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
         }
-        .glass-panel:hover { border-color: rgba(255, 87, 26, 0.3); }
-        .btn-primary { background: linear-gradient(135deg, #ff571a 0%, #ff2d00 100%); transition: all 0.3s ease; }
-        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 5px 20px rgba(255, 87, 26, 0.4); }
-        input, select, textarea { background: #0a0a0a; border: 1px solid #1f1f2a; border-radius: 12px; padding: 12px; color: white; transition: all 0.3s ease; }
-        input:focus, select:focus, textarea:focus { border-color: #ff571a; outline: none; box-shadow: 0 0 0 2px rgba(255, 87, 26, 0.2); }
-        .stat-card { background: linear-gradient(135deg, rgba(255, 87, 26, 0.1), rgba(255, 45, 0, 0.05)); border: 1px solid rgba(255, 87, 26, 0.2); }
+        .stat-card:hover { border-color: #ff571a; transform: translateY(-2px); }
+        
+        .product-card {
+            background: rgba(15, 15, 26, 0.8);
+            border: 1px solid rgba(255, 87, 26, 0.1);
+            border-radius: 16px;
+            transition: all 0.3s;
+        }
+        .product-card:hover { border-color: rgba(255, 87, 26, 0.4); background: rgba(20, 20, 30, 0.9); }
+        
+        .btn-primary { background: linear-gradient(135deg, #ff571a 0%, #ff2d00 100%); transition: all 0.3s; }
+        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 5px 20px rgba(255, 87, 26, 0.3); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.08); transition: all 0.3s; }
+        .btn-secondary:hover { background: rgba(255, 87, 26, 0.2); }
+        
+        input, select, textarea {
+            background: #0a0a0a;
+            border: 1px solid #1f1f2a;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #ff571a;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(255, 87, 26, 0.2);
+        }
+        label { font-size: 0.875rem; font-weight: 500; color: #9ca3af; margin-bottom: 6px; display: block; }
+        
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: #111118;
+            border: 1px solid #1f1f2a;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 550px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #ff571a; border-radius: 4px; }
+        
+        /* Badge HOT */
+        .badge-hot { background: linear-gradient(135deg, #ff571a, #ff2d00); font-size: 10px; padding: 2px 8px; border-radius: 20px; color: white; }
     </style>
 </head>
 <body>
 
+<!-- Botón menú móvil -->
+<button class="menu-toggle fixed top-5 left-4 z-50 md:hidden bg-zinc-900 p-2 rounded-xl border border-zinc-700" onclick="toggleSidebar()">
+    <span class="material-symbols-outlined text-white">menu</span>
+</button>
+
 <!-- Sidebar -->
-<aside class="fixed left-0 top-0 h-screen w-64 bg-black/90 border-r border-zinc-800 p-5">
-    <div class="flex items-center gap-2 mb-8 pb-4 border-b border-zinc-800">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center">
-            <span class="text-sm font-bold">🌙</span>
+<aside class="sidebar" id="sidebar">
+    <div class="flex items-center justify-between mb-8 pb-6 border-b border-zinc-800">
+        <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center">🌙</div>
+            <span class="text-xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">MoonX7</span>
         </div>
-        <span class="text-xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">MoonX7</span>
+        <button class="md:hidden text-zinc-400" onclick="toggleSidebar()">✕</button>
     </div>
-    <nav class="space-y-2">
-        <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-orange-500/10 rounded-xl transition">📊 Dashboard</a>
-        <a href="admin-productos.html" class="flex items-center gap-3 px-4 py-3 bg-orange-500/10 text-orange-500 rounded-xl font-medium">📦 Productos</a>
-        <a href="admin-pedidos.html" class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-orange-500/10 rounded-xl transition">📋 Pedidos</a>
-        <a href="admin-pagos.html" class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-orange-500/10 rounded-xl transition">💳 Métodos de Pago</a>
+    <nav class="space-y-1">
+        <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-orange-500/10 hover:text-orange-500 rounded-xl transition">📊 Dashboard</a>
+        <a href="admin-productos.html" class="flex items-center gap-3 px-4 py-3 bg-orange-500/10 text-orange-500 rounded-xl font-medium transition">📦 Productos</a>
+        <a href="admin-pedidos.html" class="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:bg-orange-500/10 hover:text-orange-500 rounded-xl transition">📋 Pedidos</a>
     </nav>
-    <button id="logoutBtn" class="absolute bottom-5 left-5 right-5 flex items-center justify-center gap-2 px-4 py-3 bg-red-600/20 text-red-400 rounded-xl hover:bg-red-600/30 transition">🚪 Cerrar Sesión</button>
+    <button id="logoutBtn" class="absolute bottom-6 left-6 right-6 flex items-center justify-center gap-2 px-4 py-3 bg-red-600/20 text-red-400 rounded-xl hover:bg-red-600/30 transition mt-8">🚪 Cerrar Sesión</button>
 </aside>
 
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
 <!-- Main Content -->
-<main class="ml-64 p-8">
-    <div class="flex justify-between items-center mb-8">
+<main class="p-4 md:p-8 pb-24">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-            <h1 class="text-3xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">Gestión de Productos</h1>
-            <p class="text-zinc-400 mt-1">Administra tu catálogo con productos de diferentes duraciones (1 día, 7 días, 30 días, LIFETIME)</p>
+            <h1 class="text-2xl md:text-3xl font-bold text-white">Gestión de Productos</h1>
+            <p class="text-zinc-500 text-sm mt-1">Administra tu catálogo de productos</p>
         </div>
-        <button id="addProductBtn" class="btn-primary px-6 py-3 rounded-xl text-white font-bold flex items-center gap-2 hover:scale-105 transition">
-            <span class="material-symbols-outlined">add</span> Nuevo Producto
+        <button id="addProductBtn" class="btn-primary px-5 py-2.5 rounded-xl text-white font-medium flex items-center gap-2 w-full md:w-auto justify-center">
+            <span class="material-symbols-outlined text-lg">add</span> Nuevo Producto
         </button>
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="stat-card rounded-xl p-5 text-center">
-            <p class="text-3xl font-bold text-orange-500" id="totalProducts">0</p>
-            <p class="text-zinc-400 text-sm">Total Productos</p>
-        </div>
-        <div class="stat-card rounded-xl p-5 text-center">
-            <p class="text-3xl font-bold text-green-500" id="totalStock">0</p>
-            <p class="text-zinc-400 text-sm">Stock Total</p>
-        </div>
-        <div class="stat-card rounded-xl p-5 text-center">
-            <p class="text-3xl font-bold text-blue-500" id="lifetimeCount">0</p>
-            <p class="text-zinc-400 text-sm">Productos LIFETIME</p>
-        </div>
-        <div class="stat-card rounded-xl p-5 text-center">
-            <p class="text-3xl font-bold text-purple-500" id="totalValue">$0</p>
-            <p class="text-zinc-400 text-sm">Valor del Inventario</p>
-        </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
+        <div class="stat-card p-4 text-center"><p class="text-zinc-500 text-xs">Total</p><p class="text-2xl font-bold text-white" id="totalProducts">0</p></div>
+        <div class="stat-card p-4 text-center"><p class="text-zinc-500 text-xs">Valor</p><p class="text-2xl font-bold text-orange-500" id="totalValue">$0</p></div>
+        <div class="stat-card p-4 text-center"><p class="text-zinc-500 text-xs">Stock</p><p class="text-2xl font-bold text-white" id="totalStock">0</p></div>
+        <div class="stat-card p-4 text-center"><p class="text-zinc-500 text-xs">HOT</p><p class="text-2xl font-bold text-orange-500" id="hotCount">0</p></div>
     </div>
 
-    <!-- Productos Grid -->
-    <div class="glass-panel p-6">
-        <h2 class="text-xl font-bold mb-4 text-orange-500 flex items-center gap-2">
-            <span class="material-symbols-outlined">inventory_2</span> Catálogo de Productos
-        </h2>
-        <div id="productsGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+    <!-- Products List -->
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold text-white">📦 Inventario</h2>
+        <span class="text-xs text-zinc-500" id="itemCount">0 items</span>
     </div>
+    <div id="productsGrid" class="space-y-3"></div>
 </main>
 
-<!-- Modal Agregar/Editar Producto -->
-<div id="productModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md">
-    <div class="glass-panel p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-4">
-            <h2 id="modalTitle" class="text-2xl font-bold text-orange-500">Agregar Producto</h2>
-            <button onclick="closeModal()" class="text-zinc-400 hover:text-white text-2xl">✕</button>
+<!-- Modal -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <div class="flex justify-between items-center mb-5">
+            <h2 id="modalTitle" class="text-xl font-bold text-orange-500">Agregar Producto</h2>
+            <button onclick="closeModal()" class="text-zinc-400 hover:text-white text-2xl leading-none">✕</button>
         </div>
         
         <form id="productForm" class="space-y-4">
             <input type="hidden" id="productId">
             
             <div>
-                <label class="block text-sm font-medium mb-2">Nombre del Producto *</label>
-                <input type="text" id="prodName" required class="w-full">
+                <label>📌 Nombre del Producto *</label>
+                <input type="text" id="prodName" required placeholder="Ej: Mod Menu Pro">
             </div>
             
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-sm font-medium mb-2">Precio (USD) *</label>
-                    <input type="number" id="prodPrice" step="0.01" required class="w-full">
+                    <label>💰 Precio (USD)</label>
+                    <input type="number" id="prodPrice" step="0.01" required placeholder="0.00">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-2">Stock</label>
-                    <input type="number" id="prodStock" value="100" class="w-full">
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium mb-2">Tipo de Licencia *</label>
-                    <select id="prodLicenseType" class="w-full" onchange="updateDurationFields()">
-                        <option value="daily">📅 1 Día</option>
-                        <option value="weekly">📅 7 Días (1 Semana)</option>
-                        <option value="monthly">📅 30 Días (1 Mes)</option>
-                        <option value="lifetime">👑 LIFETIME (De por vida)</option>
-                    </select>
-                </div>
-                <div id="durationContainer">
-                    <label class="block text-sm font-medium mb-2">Duración</label>
-                    <input type="text" id="prodDuration" readonly class="w-full bg-zinc-800/50">
+                    <label>📦 Stock</label>
+                    <input type="number" id="prodStock" value="100" placeholder="Cantidad">
                 </div>
             </div>
             
             <div>
-                <label class="block text-sm font-medium mb-2">Categoría</label>
-                <select id="prodCategory" class="w-full">
-                    <option value="Mods">🔥 Mods</option>
-                    <option value="Software">⚡ Software</option>
-                    <option value="Security">🛡️ Security</option>
-                    <option value="Bundle">🎁 Bundle</option>
-                </select>
+                <label>🏷️ Categoría (escribe lo que quieras)</label>
+                <input type="text" id="prodCategory" placeholder="Ej: Mods, Software, Security, Bundle...">
+                <p class="text-xs text-zinc-500 mt-1">Puedes escribir cualquier categoría personalizada</p>
             </div>
             
             <div>
-                <label class="block text-sm font-medium mb-2">Descripción</label>
-                <textarea id="prodDesc" rows="3" class="w-full"></textarea>
+                <label>📝 Descripción</label>
+                <textarea id="prodDesc" rows="3" placeholder="Describe el producto..."></textarea>
             </div>
             
             <div>
-                <label class="block text-sm font-medium mb-2">URL de Imagen</label>
-                <input type="url" id="prodImage" class="w-full" value="https://placehold.co/400x300/1a1a1a/ff571a?text=Producto">
+                <label>🖼️ URL de Imagen</label>
+                <input type="url" id="prodImage" placeholder="https://...">
             </div>
             
             <div class="flex items-center gap-3">
                 <input type="checkbox" id="prodHot" class="w-5 h-5 accent-orange-500">
-                <label class="text-sm">🔥 Marcar como HOT (destacar en catálogo)</label>
+                <label class="text-sm text-zinc-300">🔥 Marcar como HOT (destacar en catálogo)</label>
             </div>
             
-            <button type="submit" class="btn-primary w-full py-3 rounded-xl text-white font-bold text-lg">💾 Guardar Producto</button>
+            <button type="submit" class="btn-primary w-full py-3 rounded-xl text-white font-bold">💾 Guardar Producto</button>
         </form>
     </div>
 </div>
 
 <script>
-    // Verificar autenticación
-    window.m7Supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!session) window.location.href = 'login.html';
-    });
-
-    function updateDurationFields() {
-        const type = document.getElementById('prodLicenseType').value;
-        const durationInput = document.getElementById('prodDuration');
-        const typeMap = {
-            'daily': '1 Día',
-            'weekly': '7 Días',
-            'monthly': '30 Días',
-            'lifetime': 'DE POR VIDA'
-        };
-        durationInput.value = typeMap[type] || '';
+    window.m7Supabase.auth.getSession().then(({ data: { session } }) => { if (!session) location.href = 'login.html'; });
+    
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('active');
     }
-
+    
     async function loadProducts() {
-        const { data, error } = await window.m7Supabase.from('products').select('*').order('id');
-        if (error) return;
+        const { data } = await window.m7Supabase.from('products').select('*').order('id');
+        if (!data) return;
         
-        const grid = document.getElementById('productsGrid');
-        if (!data || data.length === 0) {
-            grid.innerHTML = '<div class="col-span-full text-center text-zinc-500 py-10">No hay productos registrados</div>';
-            return;
-        }
-        
-        // Actualizar stats
         const total = data.length;
-        const totalStock = data.reduce((sum, p) => sum + (p.stock || 0), 0);
-        const lifetimeCount = data.filter(p => p.is_lifetime === true || p.license_type === 'lifetime').length;
-        const totalValue = data.reduce((sum, p) => sum + ((p.price || 0) * (p.stock || 0)), 0);
+        const totalStock = data.reduce((s, p) => s + (p.stock || 0), 0);
+        const totalValue = data.reduce((s, p) => s + ((p.price || 0) * (p.stock || 0)), 0);
+        const hotCount = data.filter(p => p.hot).length;
         
         document.getElementById('totalProducts').textContent = total;
         document.getElementById('totalStock').textContent = totalStock;
-        document.getElementById('lifetimeCount').textContent = lifetimeCount;
         document.getElementById('totalValue').textContent = `$${totalValue.toFixed(2)}`;
+        document.getElementById('hotCount').textContent = hotCount;
+        document.getElementById('itemCount').textContent = `${total} items`;
         
-        grid.innerHTML = data.map(product => {
-            const licenseBadge = product.is_lifetime || product.license_type === 'lifetime' 
-                ? '<span class="bg-purple-600/20 text-purple-400 text-xs px-2 py-1 rounded-full">👑 LIFETIME</span>' 
-                : `<span class="bg-blue-600/20 text-blue-400 text-xs px-2 py-1 rounded-full">📅 ${product.duration_days || 0} días</span>`;
-            
-            return `
-                <div class="glass-panel p-4 flex flex-wrap items-center justify-between gap-4">
-                    <div class="flex items-center gap-4 flex-1">
-                        <img src="${product.image || 'https://placehold.co/60x60'}" class="w-14 h-14 rounded-lg object-cover">
-                        <div>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <h3 class="font-bold text-white">${product.name}</h3>
-                                ${licenseBadge}
-                                ${product.hot ? '<span class="bg-orange-600/20 text-orange-400 text-xs px-2 py-1 rounded-full">🔥 HOT</span>' : ''}
-                            </div>
-                            <p class="text-sm text-zinc-400">${product.category || 'Mods'} - $${product.price} - Stock: ${product.stock || 0}</p>
-                            <p class="text-xs text-zinc-500 mt-1 line-clamp-1">${product.description || ''}</p>
+        const grid = document.getElementById('productsGrid');
+        if (!data.length) { grid.innerHTML = '<div class="text-center text-zinc-500 py-10">No hay productos aún. Crea uno nuevo.</div>'; return; }
+        
+        grid.innerHTML = data.map(p => `
+            <div class="product-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3 flex-1">
+                    <img src="${p.image || 'https://placehold.co/50x50/1a1a1a/ff571a?text=Img'}" class="w-12 h-12 rounded-lg object-cover bg-zinc-800">
+                    <div class="flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h3 class="font-bold text-white text-sm md:text-base">${escapeHtml(p.name)}</h3>
+                            ${p.hot ? '<span class="badge-hot">HOT</span>' : ''}
                         </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="editProduct(${product.id})" class="bg-orange-600/20 text-orange-400 px-4 py-2 rounded-lg text-sm hover:bg-orange-600/30 transition">✏️ Editar</button>
-                        <button onclick="deleteProduct(${product.id})" class="bg-red-600/20 text-red-400 px-4 py-2 rounded-lg text-sm hover:bg-red-600/30 transition">🗑️ Eliminar</button>
+                        <p class="text-xs text-zinc-400">${escapeHtml(p.category || 'Sin categoría')} • Stock: ${p.stock || 0} • $${p.price}</p>
+                        <p class="text-xs text-zinc-500 line-clamp-1">${escapeHtml(p.description || '').substring(0, 80)}</p>
                     </div>
                 </div>
-            `;
-        }).join('');
+                <div class="flex gap-2 ml-14 sm:ml-0">
+                    <button onclick="editProduct(${p.id})" class="bg-orange-600/20 text-orange-400 px-4 py-2 rounded-lg text-sm hover:bg-orange-600/30">✏️ Editar</button>
+                    <button onclick="deleteProduct(${p.id})" class="bg-red-600/20 text-red-400 px-4 py-2 rounded-lg text-sm hover:bg-red-600/30">🗑️</button>
+                </div>
+            </div>
+        `).join('');
     }
     
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+    
     window.editProduct = async (id) => {
-        const { data, error } = await window.m7Supabase.from('products').select('*').eq('id', id).single();
-        if (error) return;
-        
+        const { data } = await window.m7Supabase.from('products').select('*').eq('id', id).single();
         document.getElementById('productId').value = data.id;
-        document.getElementById('prodName').value = data.name;
-        document.getElementById('prodPrice').value = data.price;
+        document.getElementById('prodName').value = data.name || '';
+        document.getElementById('prodPrice').value = data.price || '';
         document.getElementById('prodStock').value = data.stock || 100;
-        document.getElementById('prodCategory').value = data.category || 'Mods';
+        document.getElementById('prodCategory').value = data.category || '';
         document.getElementById('prodDesc').value = data.description || '';
         document.getElementById('prodImage').value = data.image || '';
         document.getElementById('prodHot').checked = data.hot || false;
-        
-        let licenseType = data.license_type || 'daily';
-        if (data.is_lifetime) licenseType = 'lifetime';
-        else if (data.duration_days === 7) licenseType = 'weekly';
-        else if (data.duration_days === 30) licenseType = 'monthly';
-        else licenseType = 'daily';
-        
-        document.getElementById('prodLicenseType').value = licenseType;
-        updateDurationFields();
-        
         document.getElementById('modalTitle').textContent = 'Editar Producto';
-        document.getElementById('productModal').classList.remove('hidden');
-        document.getElementById('productModal').classList.add('flex');
+        document.getElementById('productModal').classList.add('active');
     };
     
-    window.deleteProduct = async (id) => {
-        if (confirm('¿Eliminar este producto permanentemente?')) {
-            await window.m7Supabase.from('products').delete().eq('id', id);
-            loadProducts();
-        }
-    };
+    window.deleteProduct = async (id) => { if (confirm('¿Eliminar este producto permanentemente?')) { await window.m7Supabase.from('products').delete().eq('id', id); loadProducts(); } };
     
     document.getElementById('addProductBtn').onclick = () => {
         document.getElementById('productForm').reset();
         document.getElementById('productId').value = '';
-        document.getElementById('prodLicenseType').value = 'daily';
-        updateDurationFields();
         document.getElementById('prodHot').checked = false;
         document.getElementById('modalTitle').textContent = 'Agregar Producto';
-        document.getElementById('productModal').classList.remove('hidden');
-        document.getElementById('productModal').classList.add('flex');
+        document.getElementById('productModal').classList.add('active');
     };
     
     document.getElementById('productForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        const licenseType = document.getElementById('prodLicenseType').value;
-        let durationDays = 0;
-        let isLifetime = false;
-        
-        switch(licenseType) {
-            case 'daily': durationDays = 1; break;
-            case 'weekly': durationDays = 7; break;
-            case 'monthly': durationDays = 30; break;
-            case 'lifetime': isLifetime = true; durationDays = 0; break;
-        }
-        
-        const productData = {
+        const data = {
             name: document.getElementById('prodName').value,
             price: parseFloat(document.getElementById('prodPrice').value),
-            category: document.getElementById('prodCategory').value,
+            category: document.getElementById('prodCategory').value || 'Sin categoría',
             description: document.getElementById('prodDesc').value,
             image: document.getElementById('prodImage').value,
             hot: document.getElementById('prodHot').checked,
-            stock: parseInt(document.getElementById('prodStock').value) || 0,
-            license_type: licenseType,
-            duration_days: durationDays,
-            is_lifetime: isLifetime
+            stock: parseInt(document.getElementById('prodStock').value) || 0
         };
-        
         const id = document.getElementById('productId').value;
-        
-        if (id) {
-            await window.m7Supabase.from('products').update(productData).eq('id', id);
-        } else {
-            await window.m7Supabase.from('products').insert([productData]);
-        }
-        
-        closeModal();
-        loadProducts();
+        if (id) await window.m7Supabase.from('products').update(data).eq('id', id);
+        else await window.m7Supabase.from('products').insert([data]);
+        closeModal(); loadProducts();
     });
     
-    function closeModal() {
-        document.getElementById('productModal').classList.add('hidden');
-        document.getElementById('productModal').classList.remove('flex');
-    }
-    
-    document.getElementById('logoutBtn').onclick = async () => {
-        await window.m7Supabase.auth.signOut();
-        window.location.href = 'index.html';
-    };
+    function closeModal() { document.getElementById('productModal').classList.remove('active'); }
+    document.getElementById('logoutBtn').onclick = async () => { await window.m7Supabase.auth.signOut(); location.href = 'index.html'; };
     
     loadProducts();
 </script>
