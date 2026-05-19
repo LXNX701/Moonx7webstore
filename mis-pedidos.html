@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoonX7 Store | Pedido Confirmado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0a0a0a; }
+        .check-animation {
+            animation: checkPop 0.5s ease-out;
+        }
+        @keyframes checkPop {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-black text-gray-200 flex items-center justify-center min-h-screen">
+
+<div class="text-center px-4">
+    <div class="check-animation w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
+        <span class="material-symbols-outlined text-white text-5xl">check</span>
+    </div>
+    
+    <h1 class="text-3xl md:text-4xl font-bold mb-3">¡Pedido Recibido!</h1>
+    <p class="text-zinc-400 mb-6">Tu orden ha sido registrada exitosamente</p>
+    
+    <div class="glass-card inline-block p-6 rounded-2xl bg-zinc-900/50 border border-orange-500/20 mb-6">
+        <p class="text-zinc-400 text-sm mb-2">Número de orden</p>
+        <p id="orderNumber" class="text-2xl font-bold text-orange-500 font-mono">---</p>
+    </div>
+    
+    <p class="text-zinc-400 max-w-md mx-auto mb-8">
+        El administrador se comunicará contigo a la brevedad a través de WhatsApp para coordinar la entrega de tu pedido.
+    </p>
+    
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <button onclick="location.href='index.html'" class="btn-primary px-6 py-2 rounded-xl text-white font-medium">← Volver a la tienda</button>
+        <button onclick="location.href='compra.html'" class="bg-zinc-800 px-6 py-2 rounded-xl text-white font-medium hover:bg-zinc-700 transition">Ver carrito</button>
+    </div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('order');
+    
+    if (orderId) {
+        document.getElementById('orderNumber').textContent = `#${orderId}`;
+    } else {
+        document.getElementById('orderNumber').textContent = '#---';
+    }
+</script>
+
+<style>
+    .glass-card { background: rgba(20, 20, 25, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 87, 26, 0.15); }
+    .btn-primary { background: linear-gradient(135deg, #ff571a 0%, #ff2d00 100%); transition: all 0.3s ease; }
+    .btn-primary:hover { transform: scale(1.02); box-shadow: 0 5px 20px rgba(255, 87, 26, 0.4); }
+</style>
+</body>
+</html>
